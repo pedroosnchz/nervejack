@@ -1,26 +1,235 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --void: #05030a;
+  --fg: #e8e6ff;
+  --dim: rgba(232, 230, 255, 0.5);
+  --faint: rgba(232, 230, 255, 0.12);
+  --uv: #7b2cff; /* ultravioleta */
+  --acid: #ff2e88; /* rosa ácido */
+  --ice: #4df3ff; /* cian hielo */
+  --mono: 1;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-void: var(--void);
+  --color-fg: var(--fg);
+  --color-dim: var(--dim);
+  --color-faint: var(--faint);
+  --color-uv: var(--uv);
+  --color-acid: var(--acid);
+  --color-ice: var(--ice);
+  --font-sans: var(--font-rec);
+  --font-mono: var(--font-rec);
+  --font-logo: var(--font-major);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--void);
+  color: var(--fg);
+  color-scheme: dark;
 }
-
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-rec), ui-monospace, monospace;
+  font-variation-settings: "MONO" 1, "CASL" 0;
+  overflow-x: clip;
+}
+::selection {
+  background: var(--acid);
+  color: #000;
+}
+
+/* ---------- Humano ↔ máquina (eje MONO de Recursive) ---------- */
+.morph {
+  font-variation-settings: "MONO" var(--m, 1), "CASL" var(--c, 0), "slnt" var(--s, 0);
+  transition: font-variation-settings 0.9s cubic-bezier(0.7, 0, 0.2, 1), color 0.6s;
+}
+.human {
+  --m: 0;
+  --c: 1;
+  --s: -8;
+}
+.machine {
+  --m: 1;
+  --c: 0;
+  --s: 0;
+}
+
+/* ---------- CRT: líneas, máscara de fósforo y viñeta ---------- */
+.crt::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 80;
+  background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.28) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(255, 0, 80, 0.025) 0 1px, rgba(0, 255, 255, 0.025) 1px 2px, transparent 2px 3px);
+  mix-blend-mode: multiply;
+}
+.crt::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 81;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.75) 100%);
+}
+
+/* ---------- Glitch: titular con dos copias desplazadas en franjas ---------- */
+.glitch {
+  position: relative;
+  display: inline-block;
+}
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.glitch::before {
+  color: var(--acid);
+  transform: translateX(-0.04em);
+}
+.glitch::after {
+  color: var(--ice);
+  transform: translateX(0.04em);
+}
+.is-in .glitch::before,
+.is-glitching .glitch::before,
+.glitch:hover::before {
+  animation: slice-a 0.9s steps(1) both;
+}
+.is-in .glitch::after,
+.is-glitching .glitch::after,
+.glitch:hover::after {
+  animation: slice-b 0.9s steps(1) both;
+}
+@keyframes slice-a {
+  0% { opacity: 1; clip-path: inset(10% 0 70% 0); transform: translate(-0.06em, 0); }
+  15% { clip-path: inset(55% 0 20% 0); transform: translate(0.05em, 0); }
+  30% { clip-path: inset(30% 0 50% 0); transform: translate(-0.08em, 0); }
+  45% { clip-path: inset(80% 0 5% 0); transform: translate(0.03em, 0); }
+  60% { clip-path: inset(5% 0 85% 0); transform: translate(-0.02em, 0); }
+  80% { opacity: 1; clip-path: inset(45% 0 40% 0); }
+  100% { opacity: 0; }
+}
+@keyframes slice-b {
+  0% { opacity: 1; clip-path: inset(60% 0 10% 0); transform: translate(0.07em, 0); }
+  20% { clip-path: inset(20% 0 60% 0); transform: translate(-0.04em, 0); }
+  40% { clip-path: inset(70% 0 15% 0); transform: translate(0.06em, 0); }
+  60% { clip-path: inset(0 0 80% 0); transform: translate(-0.05em, 0); }
+  85% { opacity: 1; clip-path: inset(35% 0 45% 0); }
+  100% { opacity: 0; }
+}
+
+/* ráfaga global (comando `glitch`, reservas, etc.) */
+html.is-glitching main {
+  animation: jitter 0.65s steps(2) both;
+}
+@keyframes jitter {
+  0% { transform: translate(0); filter: none; }
+  20% { transform: translate(-6px, 2px) skewX(4deg); filter: hue-rotate(90deg) saturate(3); }
+  40% { transform: translate(5px, -3px); filter: invert(1) hue-rotate(180deg); }
+  60% { transform: translate(-3px, 1px) skewX(-6deg); filter: hue-rotate(-60deg) contrast(2); }
+  80% { transform: translate(2px, 0); filter: none; }
+  100% { transform: none; }
+}
+
+/* ---------- Apagado CRT ---------- */
+html.is-off main,
+html.is-off .chrome {
+  animation: crt-off 0.9s cubic-bezier(0.7, 0, 0.3, 1) forwards;
+}
+@keyframes crt-off {
+  0% { transform: scale(1, 1); filter: brightness(1); }
+  45% { transform: scale(1, 0.004); filter: brightness(6); }
+  80% { transform: scale(0.002, 0.004); filter: brightness(10); }
+  100% { transform: scale(0, 0); filter: brightness(0); }
+}
+html.is-booting main,
+html.is-booting .chrome {
+  animation: crt-on 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes crt-on {
+  0% { transform: scale(0.002, 0.004); filter: brightness(8); }
+  40% { transform: scale(1, 0.004); filter: brightness(4); }
+  100% { transform: none; filter: none; }
+}
+
+/* Reveal: arranque de datos */
+.boot {
+  opacity: 0;
+  clip-path: inset(0 100% 0 0);
+  transition: opacity 0.2s, clip-path 0.7s steps(12);
+  transition-delay: var(--d, 0s);
+}
+.is-in .boot,
+.boot.is-in {
+  opacity: 1;
+  clip-path: inset(0 0 0 0);
+}
+
+/* Cursor de bloque parpadeante */
+.caret::after {
+  content: "█";
+  margin-left: 2px;
+  animation: blink 1s steps(1) infinite;
+  color: var(--acid);
+}
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* Precio que sube / baja */
+.flash-up {
+  animation: up 0.8s ease-out;
+}
+.flash-down {
+  animation: down 0.8s ease-out;
+}
+@keyframes up {
+  from { background: rgba(77, 243, 255, 0.35); }
+}
+@keyframes down {
+  from { background: rgba(255, 46, 136, 0.35); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glitch::before, .glitch::after, html.is-glitching main { animation: none !important; }
+  .morph { transition: none; }
+}
+
+@keyframes fadein {
+  from { opacity: 0; }
+}
+
+/* ---------- Escáner: rayos X bajo la lente y en la banda de escaneo ---------- */
+.xray {
+  -webkit-mask-image: radial-gradient(circle at var(--lx) var(--ly), #000 0 80px, transparent 82px),
+    linear-gradient(to bottom, transparent calc(var(--sy) - 9%), #000 calc(var(--sy) - 1%), #000 var(--sy), transparent calc(var(--sy) + 2%));
+  mask-image: radial-gradient(circle at var(--lx) var(--ly), #000 0 80px, transparent 82px),
+    linear-gradient(to bottom, transparent calc(var(--sy) - 9%), #000 calc(var(--sy) - 1%), #000 var(--sy), transparent calc(var(--sy) + 2%));
+  filter: drop-shadow(0 0 4px rgba(77, 243, 255, 0.6));
+}
+
+.glitch-now::before {
+  animation: slice-a 0.9s steps(1) both !important;
+}
+.glitch-now::after {
+  animation: slice-b 0.9s steps(1) both !important;
+}
+
+/* Fichas del escáner: ocultas hasta que la línea pasa por su implante */
+.scan-card {
+  opacity: 0.12;
+  filter: blur(3px) grayscale(1);
+  clip-path: inset(0 0 72% 0);
+  transition: opacity 0.3s, filter 0.5s, clip-path 0.7s steps(10), border-color 0.4s;
+}
+.scan-card.on {
+  opacity: 1;
+  filter: none;
+  clip-path: inset(0 0 0 0);
 }

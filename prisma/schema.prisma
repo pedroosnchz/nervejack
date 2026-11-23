@@ -1,0 +1,18 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+/// Reservas de quirófano en la clínica.
+model Booking {
+  id        String   @id @default(cuid())
+  handle    String
+  email     String   @unique
+  implant   String
+  slot      Int      @unique
+  createdAt DateTime @default(now())
+}
